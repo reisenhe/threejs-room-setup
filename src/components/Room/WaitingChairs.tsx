@@ -1,8 +1,8 @@
-interface ChairProps {
+export interface ChairProps {
   position?: [number, number, number]
 }
 
-function Chair({ position = [0, 0, 0] }: ChairProps) {
+export function Chair({ position = [0, 0, 0] }: ChairProps) {
   const seatColor = '#4a90d9'
   const legColor = '#8a8a8a'
   const legRadius = 0.03

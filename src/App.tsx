@@ -1,10 +1,15 @@
-import ClinicScene from './scene/ClinicScene'
+import { Routes, Route } from 'react-router-dom'
+import HomePage from './pages/HomePage'
+import ClinicPage from './pages/ClinicPage'
+import ExportPage from './pages/ExportPage'
 
 function App() {
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <ClinicScene />
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/clinic" element={<ClinicPage />} />
+      <Route path="/export" element={<ExportPage />} />
+    </Routes>
   )
 }
 
