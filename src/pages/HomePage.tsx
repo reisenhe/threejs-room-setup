@@ -65,6 +65,35 @@ function HomePage() {
             </p>
           </div>
         </Link>
+
+        <Link to="/car-model" className="no-underline">
+          <div className="bg-white rounded-2xl p-10 w-80 shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#e65100]">
+            <div className="w-16 h-16 bg-[linear-gradient(135deg,#e65100,#ff9800)] rounded-xl flex items-center justify-center mb-6">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 17h2l1-3h8l1 3h2" />
+                <path d="M3 17a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z" />
+                <circle cx="7.5" cy="17.5" r="1.5" />
+                <circle cx="16.5" cy="17.5" r="1.5" />
+                <path d="M7 11l2-5h6l2 5" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-semibold text-[#e65100] mb-3">
+              车模展示
+            </h2>
+            <p className="text-base text-[#616161] leading-normal">
+              高精度3D车模展示与性能对比，支持标准/优化双模式渲染，动画播放控制
+            </p>
+          </div>
+        </Link>
       </div>
 
       <footer className="mt-16 text-[#757575] text-sm">

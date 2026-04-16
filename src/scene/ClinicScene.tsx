@@ -1,8 +1,8 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber'
-import { OrbitControls, useHelper } from '@react-three/drei'
+import { Grid, OrbitControls } from '@react-three/drei'
 import { EffectComposer, Outline } from '@react-three/postprocessing'
-import { Group, Mesh, MeshStandardMaterial, MathUtils, DirectionalLightHelper, CameraHelper, PCFShadowMap } from 'three'
+import { Group, Mesh, MeshStandardMaterial, MathUtils, PCFShadowMap } from 'three'
 import Room from '../components/Room/Room'
 import { useClinicStore } from '../store/useClinicStore'
 import CameraController from './CameraController'
@@ -194,7 +194,19 @@ export default function ClinicScene() {
         />
 
         <CameraController controlsRef={controlsRef} />
-
+        <Grid
+          args={[50, 50]}
+          position={[0, -0.001, 0]}
+          cellSize={5}
+          cellThickness={0.5}
+          cellColor="#e2e8f0"
+          sectionSize={50}
+          sectionThickness={1}
+          sectionColor="#94a3b8"
+          fadeDistance={400}
+          fadeStrength={1}
+          followCamera={false}
+        />
         {/* Scene content - 4个房间 */}
         {ROOMS.map((room) => (
           <RoomInstance
