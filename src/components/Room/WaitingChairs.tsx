@@ -1,28 +1,24 @@
+import { useMemo } from 'react'
+import { Instances, Instance } from '@react-three/drei'
+
 export interface ChairProps {
   position?: [number, number, number]
 }
 
 export function Chair({ position = [0, 0, 0] }: ChairProps) {
-  const seatColor = '#4a90d9'
-  const legColor = '#8a8a8a'
   const legRadius = 0.03
   const legHeight = 0.45
 
   return (
     <group position={position}>
-      {/* Seat */}
       <mesh position={[0, 0.47, 0]} castShadow>
         <boxGeometry args={[0.45, 0.05, 0.45]} />
-        <meshStandardMaterial color={seatColor} />
+        <meshStandardMaterial color="#4a90d9" />
       </mesh>
-
-      {/* Backrest */}
       <mesh position={[0, 0.8, -0.2]} castShadow>
         <boxGeometry args={[0.45, 0.6, 0.05]} />
-        <meshStandardMaterial color={seatColor} />
+        <meshStandardMaterial color="#4a90d9" />
       </mesh>
-
-      {/* 4 legs */}
       {[
         [0.18, legHeight / 2, 0.18],
         [-0.18, legHeight / 2, 0.18],
@@ -31,7 +27,7 @@ export function Chair({ position = [0, 0, 0] }: ChairProps) {
       ].map((pos, i) => (
         <mesh key={i} position={pos as [number, number, number]} castShadow>
           <cylinderGeometry args={[legRadius, legRadius, legHeight, 8]} />
-          <meshStandardMaterial color={legColor} />
+          <meshStandardMaterial color="#8a8a8a" />
         </mesh>
       ))}
     </group>
@@ -49,23 +45,60 @@ export default function WaitingChairs({
   seatsPerRow = 4,
   position = [1, 0, 0],
 }: WaitingChairsProps) {
-  const spacingX = 0.6
-  const spacingZ = 1.0
-
-  const chairs: { pos: [number, number, number]; key: string }[] = []
-  for (let r = 0; r < rows; r++) {
-    for (let s = 0; s < seatsPerRow; s++) {
-      const x = s * spacingX - ((seatsPerRow - 1) * spacingX) / 2
-      const z = r * spacingZ - ((rows - 1) * spacingZ) / 2
-      chairs.push({ pos: [(!r && !s ? 2 * x : x), 0, z], key: `${r}-${s}` })
+  const chairPositions = useMemo(() => {
+    const spacingX = 0.6
+    const spacingZ = 1.0
+    const positions: [number, number, number][] = []
+    for (let r = 0; r < rows; r++) {
+      for (let s = 0; s < seatsPerRow; s++) {
+        const x = s * spacingX - ((seatsPerRow - 1) * spacingX) / 2
+        const z = r * spacingZ - ((rows - 1) * spacingZ) / 2
+        positions.push([!r && !s ? 2 * x : x, 0, z])
+      }
     }
-  }
+    return positions
+  }, [rows, seatsPerRow])
+
+  const legOffsets: [number, number, number][] = [
+    [0.18, 0.225, 0.18],
+    [-0.18, 0.225, 0.18],
+    [0.18, 0.225, -0.18],
+    [-0.18, 0.225, -0.18],
+  ]
 
   return (
     <group position={position}>
-      {chairs.map(({ pos, key }) => (
-        <Chair key={key} position={pos} />
-      ))}
+      {/* Seats */}
+      <Instances limit={chairPositions.length} castShadow>
+        <boxGeometry args={[0.45, 0.05, 0.45]} />
+        <meshStandardMaterial color="#4a90d9" />
+        {chairPositions.map((pos, i) => (
+          <Instance key={`seat-${i}`} position={[pos[0], 0.47, pos[2]]} />
+        ))}
+      </Instances>
+
+      {/* Backrests */}
+      <Instances limit={chairPositions.length} castShadow>
+        <boxGeometry args={[0.45, 0.6, 0.05]} />
+        <meshStandardMaterial color="#4a90d9" />
+        {chairPositions.map((pos, i) => (
+          <Instance key={`back-${i}`} position={[pos[0], 0.8, pos[2] - 0.2]} />
+        ))}
+      </Instances>
+
+      {/* Legs */}
+      <Instances limit={chairPositions.length * 4} castShadow>
+        <cylinderGeometry args={[0.03, 0.03, 0.45, 8]} />
+        <meshStandardMaterial color="#8a8a8a" />
+        {chairPositions.flatMap((pos, i) =>
+          legOffsets.map((off, j) => (
+            <Instance
+              key={`leg-${i}-${j}`}
+              position={[pos[0] + off[0], off[1], pos[2] + off[2]]}
+            />
+          ))
+        )}
+      </Instances>
     </group>
   )
 }

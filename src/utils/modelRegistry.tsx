@@ -15,6 +15,22 @@ export interface ModelEntry {
   cameraTarget: [number, number, number]
 }
 
+function CenteredReceptionDesk() {
+  return (
+    <group position={[4.5, 0, 2.5]}>
+      <ReceptionDesk />
+    </group>
+  )
+}
+
+function SingleChair() {
+  return <Chair />
+}
+
+function CenteredDoorFrame() {
+  return <DoorFrame position={[0, 0, 0]} />
+}
+
 export const modelRegistry: ModelEntry[] = [
   {
     id: 'full-scene',
@@ -36,11 +52,7 @@ export const modelRegistry: ModelEntry[] = [
     id: 'reception-desk',
     name: '接待台',
     description: 'L型接待台，含桌面和前面板',
-    Component: () => (
-      <group position={[4.5, 0, 2.5]}>
-        <ReceptionDesk />
-      </group>
-    ),
+    Component: CenteredReceptionDesk,
     cameraPosition: [3, 3, 3],
     cameraTarget: [0, 0.5, 0],
   },
@@ -48,7 +60,7 @@ export const modelRegistry: ModelEntry[] = [
     id: 'chair',
     name: '椅子',
     description: '单把候诊椅，含座椅、靠背和四条腿',
-    Component: () => <Chair />,
+    Component: SingleChair,
     cameraPosition: [1.5, 1.5, 1.5],
     cameraTarget: [0, 0.5, 0],
   },
@@ -56,7 +68,7 @@ export const modelRegistry: ModelEntry[] = [
     id: 'door-frame',
     name: '门框',
     description: '入口门框，含两个立柱和横梁',
-    Component: () => <DoorFrame position={[0, 0, 0]} />,
+    Component: CenteredDoorFrame,
     cameraPosition: [3, 2.5, 3],
     cameraTarget: [0, 1.2, 0],
   },

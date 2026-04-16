@@ -51,7 +51,7 @@ function ModelThumbnail({ model }: { model: ModelEntry }) {
       <img
         src={imageUrl}
         alt={model.name}
-        style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px', display: 'block' }}
+        className="w-full h-[160px] object-cover rounded-lg block"
       />
     )
   }
@@ -59,7 +59,7 @@ function ModelThumbnail({ model }: { model: ModelEntry }) {
   return (
     <Canvas
       camera={{ position: model.cameraPosition, fov: 50 }}
-      style={{ width: '100%', height: '160px', borderRadius: '8px' }}
+      className="w-full h-[160px] rounded-lg"
       gl={{ preserveDrawingBuffer: true }}
     >
       <ambientLight intensity={0.6} />
@@ -73,6 +73,39 @@ function ModelThumbnail({ model }: { model: ModelEntry }) {
       />
       <ScreenshotCapture onCapture={setImageUrl} />
     </Canvas>
+  )
+}
+
+function ModelRenderer({
+  model,
+  onSceneReady,
+}: {
+  model: ModelEntry
+  onSceneReady: (scene: Scene) => void
+}) {
+  const { camera } = useThree()
+
+  useEffect(() => {
+    camera.position.set(...model.cameraPosition)
+    camera.updateProjectionMatrix()
+  }, [camera, model.cameraPosition])
+
+  const ModelComponent = model.Component
+
+  return (
+    <>
+      <OrbitControls
+        enableDamping
+        dampingFactor={0.08}
+        minPolarAngle={0.1}
+        maxPolarAngle={Math.PI / 2 - 0.05}
+        minDistance={0.5}
+        maxDistance={30}
+        target={model.cameraTarget}
+      />
+      <ModelComponent />
+      <SceneCapture onSceneReady={onSceneReady} />
+    </>
   )
 }
 
@@ -150,66 +183,41 @@ export default function ExportPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div className="flex h-screen font-sans">
       {/* Left Sidebar - Model List */}
-      <div
-        style={{
-          width: '320px',
-          backgroundColor: '#f0f2f5',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="w-[320px] bg-surface flex flex-col overflow-hidden">
         {/* Header */}
-        <div
-          style={{
-            padding: '20px 16px',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-          }}
-        >
-          <h2 style={{ margin: 0, color: '#1f2937', fontSize: '1.25rem', fontWeight: 600 }}>
+        <div className="px-4 py-5 border-b border-black/[0.08]">
+          <h2 className="m-0 text-dark text-xl font-semibold">
             模型列表
           </h2>
         </div>
 
         {/* Scrollable Model Cards */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
           {modelRegistry.map((model) => {
             const isSelected = model.id === selectedId
             return (
               <div
                 key={model.id}
                 onClick={() => setSelectedId(model.id)}
-                style={{
-                  backgroundColor: isSelected ? 'rgba(74, 144, 217, 0.12)' : '#ffffff',
-                  border: `2px solid ${isSelected ? '#4a90d9' : 'transparent'}`,
-                  borderRadius: '12px',
-                  padding: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
+                className={`p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                  isSelected
+                    ? 'bg-[rgba(74,144,217,0.12)] border-2 border-secondary'
+                    : 'bg-white border-2 border-transparent'
+                }`}
               >
                 {/* Thumbnail */}
-                <div style={{ marginBottom: '10px', overflow: 'hidden', borderRadius: '8px' }}>
+                <div className="mb-2.5 overflow-hidden rounded-lg">
                   <ModelThumbnail model={model} />
                 </div>
                 
                 {/* Model Info */}
-                <div style={{ color: '#1f2937' }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '4px' }}>
+                <div className="text-dark">
+                  <div className="font-semibold text-[0.95rem] mb-1">
                     {model.name}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.4 }}>
+                  <div className="text-[0.8rem] text-gray-500 leading-snug">
                     {model.description}
                   </div>
                 </div>
@@ -220,39 +228,22 @@ export default function ExportPage() {
       </div>
 
       {/* Main Area - 3D Preview + Controls */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: '#e8eaed',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="flex-1 flex flex-col bg-surface-light overflow-hidden">
         {/* Top - Breadcrumb Info */}
-        <div
-          style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>模型预览</span>
-          <span style={{ color: '#9ca3af' }}>/</span>
-          <span style={{ color: '#1f2937', fontSize: '0.95rem', fontWeight: 500 }}>
+        <div className="px-6 py-4 border-b border-black/[0.08] flex items-center gap-2">
+          <span className="text-gray-500 text-[0.9rem]">模型预览</span>
+          <span className="text-gray-400">/</span>
+          <span className="text-dark text-[0.95rem] font-medium">
             {selectedModel.name}
           </span>
         </div>
 
         {/* Center - Large Canvas */}
-        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <div className="flex-1 min-h-0 relative">
           <Canvas
-            key={selectedId}
             shadows
             camera={{ position: selectedModel.cameraPosition, fov: 50, near: 0.1, far: 100 }}
-            style={{ height: '100%' }}
+            className="h-full"
           >
             {/* Lighting */}
             <ambientLight intensity={0.5} />
@@ -271,53 +262,17 @@ export default function ExportPage() {
             />
             <hemisphereLight args={['#b1e1ff', '#b97a20', 0.25]} />
 
-            {/* Controls */}
-            <OrbitControls
-              enableDamping
-              dampingFactor={0.08}
-              minPolarAngle={0.1}
-              maxPolarAngle={Math.PI / 2 - 0.05}
-              minDistance={0.5}
-              maxDistance={30}
-              target={selectedModel.cameraTarget}
-            />
-
-            {/* Scene content */}
-            <selectedModel.Component />
-            <SceneCapture onSceneReady={handleSceneReady} />
+            {/* Model + Controls + SceneCapture */}
+            <ModelRenderer key={selectedId} model={selectedModel} onSceneReady={handleSceneReady} />
           </Canvas>
         </div>
 
         {/* Bottom Control Bar */}
-        <div
-          style={{
-            height: '80px',
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 2rem',
-          }}
-        >
+        <div className="h-20 bg-white border-t border-black/[0.08] flex items-center justify-between px-8">
           {/* Back Link */}
           <Link
             to="/"
-            style={{
-              textDecoration: 'none',
-              color: '#6b7280',
-              fontSize: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'color 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#1f2937'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#6b7280'
-            }}
+            className="no-underline text-gray-500 text-base flex items-center gap-2 transition-colors duration-200 hover:text-dark"
           >
             <span>←</span>
             <span>返回首页</span>
@@ -325,75 +280,33 @@ export default function ExportPage() {
 
           {/* Status Text */}
           <div
-            style={{
-              color: getStatusColor(),
-              fontSize: '0.95rem',
-              fontWeight: 500,
-              transition: 'color 0.3s ease',
-            }}
+            className="text-[0.95rem] font-medium transition-colors duration-300"
+            style={{ color: getStatusColor() }}
           >
             {getStatusText()}
           </div>
 
           {/* Export Buttons */}
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="flex gap-4">
             <button
               onClick={handleExportGLTF}
               disabled={isDisabled}
-              style={{
-                padding: '10px 24px',
-                backgroundColor: isDisabled ? '#374151' : '#4a90d9',
-                color: isDisabled ? '#6b7280' : '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(74, 144, 217, 0.3)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isDisabled) {
-                  e.currentTarget.style.backgroundColor = '#3a7bc8'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDisabled) {
-                  e.currentTarget.style.backgroundColor = '#4a90d9'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                }
-              }}
+              className={`px-6 py-2.5 rounded-lg text-[0.95rem] font-semibold transition-all duration-200 ${
+                isDisabled
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed shadow-none'
+                  : 'bg-secondary text-white cursor-pointer shadow-lg hover:-translate-y-0.5 hover:brightness-110'
+              }`}
             >
               导出 GLTF
             </button>
             <button
               onClick={handleExportGLB}
               disabled={isDisabled}
-              style={{
-                padding: '10px 24px',
-                backgroundColor: isDisabled ? '#374151' : '#4a90d9',
-                color: isDisabled ? '#6b7280' : '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(74, 144, 217, 0.3)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isDisabled) {
-                  e.currentTarget.style.backgroundColor = '#3a7bc8'
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isDisabled) {
-                  e.currentTarget.style.backgroundColor = '#4a90d9'
-                  e.currentTarget.style.transform = 'translateY(0)'
-                }
-              }}
+              className={`px-6 py-2.5 rounded-lg text-[0.95rem] font-semibold transition-all duration-200 ${
+                isDisabled
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed shadow-none'
+                  : 'bg-secondary text-white cursor-pointer shadow-lg hover:-translate-y-0.5 hover:brightness-110'
+              }`}
             >
               导出 GLB
             </button>
