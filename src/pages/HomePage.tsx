@@ -5,10 +5,10 @@ function HomePage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[linear-gradient(135deg,#e3f2fd_0%,#bbdefb_50%,#90caf9_100%)] p-8 font-sans">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold text-[#1565c0] mb-4 drop-shadow-sm">
-          Clinic Monitor 3D
+          Three.js Scene Lab
         </h1>
-        <p className="text-xl text-[#424242] max-w-xl leading-relaxed">
-          一个交互式的3D诊所监控系统，提供沉浸式的医疗环境可视化和模型导出功能
+        <p className="text-xl text-[#424242] max-w-2xl leading-relaxed">
+          基于 React Three Fiber 的 3D 技术场景集合，探索空间建模、GLTF 模型加载、实时性能监控与模型导出等典型 Web 3D 开发技术
         </p>
       </div>
 
@@ -34,7 +34,7 @@ function HomePage() {
               3D 诊所场景
             </h2>
             <p className="text-base text-[#616161] leading-normal">
-              进入交互式3D诊所环境，浏览候诊区、接待台等区域，支持自由视角导航
+              探索 3D 场景搭建技术：多房间布局、OrbitControls 交互控制、相机预设切换、轮廓高亮与报警动画等
             </p>
           </div>
         </Link>
@@ -61,7 +61,7 @@ function HomePage() {
               模型导出工具
             </h2>
             <p className="text-base text-[#616161] leading-normal">
-              导出3D诊所模型为多种格式，支持OBJ、GLTF等标准格式，便于在其他软件中使用
+              演示 GLTF 导出工作流：场景模型注册、3D 缩略图预览、一键导出 GLTF / GLB 文件
             </p>
           </div>
         </Link>
@@ -97,7 +97,7 @@ function HomePage() {
       </div>
 
       <footer className="mt-16 text-[#757575] text-sm">
-        Clinic Monitor 3D &copy; 2026
+        Three.js Scene Lab &copy; 2026
       </footer>
     </div>
   )
