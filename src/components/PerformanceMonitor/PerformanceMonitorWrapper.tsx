@@ -3,14 +3,24 @@ import { PerformanceMonitor, usePerformanceMonitor } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { usePerformanceStore } from '../../store/usePerformanceStore'
 
-/** 每 30 帧采样一次 renderer.info，写入 store */
+/** PerformanceMonitor 回调参数类型 */
+type PerfMonitorApi = {
+  fps: number
+  factor: number
+  refreshrate: number
+  flipped: number
+  fallback: boolean
+}
+
+/** 每 0.5 秒采样一次 renderer.info，写入 store */
 function RendererInfoTracker() {
   const gl = useThree((s) => s.gl)
-  const frameCount = useRef(0)
+  const lastSampleTime = useRef(0)
 
-  useFrame(() => {
-    frameCount.current++
-    if (frameCount.current % 30 === 0) {
+  useFrame((state) => {
+    const now = state.clock.elapsedTime
+    if (now - lastSampleTime.current >= 0.5) {
+      lastSampleTime.current = now
       const info = gl.info.render
       usePerformanceStore.getState().updateRendererInfo({
         drawCalls: info.calls,
@@ -45,33 +55,7 @@ export function PerformanceMonitorWrapper({
   step = 0.1,
   children,
 }: PerformanceMonitorWrapperProps) {
-  const handleIncline = (api: {
-    fps: number
-    factor: number
-    refreshrate: number
-    flipped: number
-    fallback: boolean
-  }) => {
-    usePerformanceStore.getState().updateMetrics(api)
-  }
-
-  const handleDecline = (api: {
-    fps: number
-    factor: number
-    refreshrate: number
-    flipped: number
-    fallback: boolean
-  }) => {
-    usePerformanceStore.getState().updateMetrics(api)
-  }
-
-  const handleChange = (api: {
-    fps: number
-    factor: number
-    refreshrate: number
-    flipped: number
-    fallback: boolean
-  }) => {
+  const handleMetrics = (api: PerfMonitorApi) => {
     usePerformanceStore.getState().updateMetrics(api)
   }
 
@@ -87,9 +71,9 @@ export function PerformanceMonitorWrapper({
       bounds={bounds}
       flipflops={flipflops}
       step={step}
-      onIncline={handleIncline}
-      onDecline={handleDecline}
-      onChange={handleChange}
+      onIncline={handleMetrics}
+      onDecline={handleMetrics}
+      onChange={handleMetrics}
       onFallback={handleFallback}
     >
       <RendererInfoTracker />

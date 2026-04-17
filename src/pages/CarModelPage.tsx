@@ -1,10 +1,11 @@
-import { useState, useCallback, Suspense } from 'react'
+import { useState, useCallback, useRef, Suspense } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, useProgress, Environment } from '@react-three/drei'
 import { Link } from 'react-router-dom'
 import * as THREE from 'three'
 import { PerformanceMonitorWrapper, PerformancePanel } from '../components/PerformanceMonitor'
 import { usePerformanceMode } from '../hooks/usePerformanceMode'
+import type { UseAnimationPlayerResult } from '../hooks/useAnimationPlayer'
 import CarModel from '../components/CarModel/CarModel'
 
 
@@ -25,6 +26,31 @@ export default function CarModelPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed, setSpeed] = useState<number>(1)
   const [loop, setLoop] = useState(true)
+
+  // 合并材质状态
+  const [mergeMaterials, setMergeMaterials] = useState(false)
+
+  // 动画控制器引用（由 CarModel 通过 onAnimReady 回调传入）
+  const animPlayerRef = useRef<UseAnimationPlayerResult | null>(null)
+
+  // 动画控制器就绪回调
+  const handleAnimReady = useCallback((player: UseAnimationPlayerResult) => {
+    animPlayerRef.current = player
+  }, [])
+
+  // 切换合并材质（开启时强制停止播放）
+  const handleToggleMerge = useCallback(() => {
+    setMergeMaterials((prev) => {
+      if (!prev) setIsPlaying(false)
+      return !prev
+    })
+  }, [])
+
+  // 重置动画（回到初始帧并清除播放状态）
+  const handleResetAnim = useCallback(() => {
+    animPlayerRef.current?.stop()
+    setIsPlaying(false)
+  }, [])
 
   // 使用 drei 的 useProgress 获取全局加载进度（可在 Canvas 外部使用）
   const { progress, active } = useProgress()
@@ -65,6 +91,29 @@ export default function CarModelPage() {
           {/* 分隔线 */}
           <div className="w-px h-6 bg-black/10" />
 
+          {/* 合并材质切换（开启后动画不可用） */}
+          <button
+            onClick={handleToggleMerge}
+            title={
+              mergeMaterials
+                ? '已合并相同材质节点为单个 draw call，点击取消'
+                : '将相同材质的 Mesh 合并以降低 draw call，合并后动画不可用'
+            }
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium cursor-pointer transition-colors duration-200 ${
+              mergeMaterials
+                ? 'border-amber-400/50 bg-amber-50 text-amber-700'
+                : 'border-black/10 bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+            </svg>
+            合并材质
+          </button>
+
           {/* 模式切换按钮组 - 连接 usePerformanceMode */}
           <div className="flex rounded-lg overflow-hidden border border-black/10">
             <button
@@ -97,23 +146,53 @@ export default function CarModelPage() {
 
         {/* 右侧：动画控件 */}
         <div className="flex items-center gap-3">
-          {/* 播放/暂停 - 连接 animPlayer */}
-          <button
-            onClick={() => setIsPlaying((prev) => !prev)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-black/10 bg-white text-[13px] font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
-          >
-            {isPlaying ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
+          {/* 重置动画 */}
+          <span title={mergeMaterials ? '已合并材质，动画不可用' : '重置动画到初始帧'}>
+            <button
+              onClick={handleResetAnim}
+              disabled={mergeMaterials}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium transition-colors duration-200 ${
+                mergeMaterials
+                  ? 'border-black/5 bg-gray-50 text-gray-300 cursor-not-allowed'
+                  : 'border-black/10 bg-white text-gray-700 cursor-pointer hover:bg-gray-50'
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 .49-4.95" />
               </svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="5 3 19 12 5 21 5 3" />
-              </svg>
-            )}
-            {isPlaying ? '暂停' : '播放'}
-          </button>
+              重置
+            </button>
+          </span>
+
+          {/* 播放/暂停 - 合并材质时禁用 */}
+          <span title={
+            mergeMaterials
+              ? '已开启合并材质，动画暂不可用'
+              : isPlaying ? '暂停动画' : '播放动画'
+          }>
+            <button
+              onClick={() => !mergeMaterials && setIsPlaying((prev) => !prev)}
+              disabled={mergeMaterials}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium transition-colors duration-200 ${
+                mergeMaterials
+                  ? 'border-black/5 bg-gray-50 text-gray-300 cursor-not-allowed'
+                  : 'border-black/10 bg-white text-gray-700 cursor-pointer hover:bg-gray-50'
+              }`}
+            >
+              {isPlaying ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              )}
+              {isPlaying ? '暂停' : '播放'}
+            </button>
+          </span>
 
           {/* 速度选择 - 连接 animPlayer.setSpeed */}
           <div className="flex items-center gap-1">
@@ -222,13 +301,17 @@ export default function CarModelPage() {
             />
 
             {/* BMW M4 模型 - 使用 Suspense 处理异步加载 */}
+            {/* key 随 mergeMaterials 变化，强制组件卸载重挂，确保 AnimationMixer/actions 与新 scene 重新绑定 */}
             <Suspense fallback={null}>
               <CarModel
+                key={String(mergeMaterials)}
                 perfConfig={config}
                 animPlaying={isPlaying}
                 animSpeed={speed}
                 animLoop={loop}
+                mergeMaterials={mergeMaterials}
                 onLoaded={handleLoaded}
+                onAnimReady={handleAnimReady}
               />
             </Suspense>
           </PerformanceMonitorWrapper>

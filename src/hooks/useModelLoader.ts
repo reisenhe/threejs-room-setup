@@ -2,6 +2,7 @@ import { useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 // ============================================================
@@ -12,6 +13,12 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 export interface UseModelLoaderOptions {
   /** true 使用本地 Draco decoder（public/draco/gltf/），string 自定义 decoder 路径 */
   draco?: boolean | string
+  /**
+   * true 将相同材质的 Mesh 合并为单个 draw call，可大幅降低 draw call 数量。
+   * 注意：合并后场景结构被展平，原始节点层级、名称、userData 均不保留。
+   * 多材质（material 数组）的 Mesh 会跳过合并，保持原样。
+   */
+  mergeMaterials?: boolean
 }
 
 /** 返回结果 */
@@ -37,6 +44,70 @@ function getDracoLoader(decoderPath: string): DRACOLoader {
   }
   sharedDracoLoader.setDecoderPath(decoderPath)
   return sharedDracoLoader
+}
+
+/**
+ * 将场景中相同材质的 Mesh 合并为单个 Mesh，降低 draw call。
+ * - 每个 Mesh 的世界矩阵已 bake 到几何体顶点，合并后 Mesh 置于场景原点。
+ * - 多材质（material 数组）的 Mesh 直接加入结果，不参与合并。
+ * - 合并失败时静默跳过对应分组。
+ */
+function mergeSceneByMaterial(scene: THREE.Group): THREE.Group {
+  scene.updateMatrixWorld(true)
+
+  const buckets = new Map<
+    string,
+    { material: THREE.Material; geoms: THREE.BufferGeometry[] }
+  >()
+  const skipped: THREE.Mesh[] = []
+
+  scene.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return
+
+    // 多材质 Mesh 跳过合并
+    if (Array.isArray(child.material)) {
+      skipped.push(child)
+      return
+    }
+
+    const mat = child.material as THREE.Material
+    const geom = child.geometry.clone() as THREE.BufferGeometry
+    geom.applyMatrix4(child.matrixWorld)
+
+    // 分桶 key = 材质 uuid + geometry attributes 指纹
+    // 只有材质相同且 attribute 集合完全一致的几何体才进同一桶，
+    // 避免 mergeGeometries 因 attribute 数量不匹配而报错
+    const attrKey = Object.keys(geom.attributes).sort().join(',')
+    const bucketKey = `${mat.uuid}|${attrKey}`
+
+    if (!buckets.has(bucketKey)) {
+      buckets.set(bucketKey, { material: mat, geoms: [] })
+    }
+    buckets.get(bucketKey)!.geoms.push(geom)
+  })
+
+  const result = new THREE.Group()
+
+  buckets.forEach(({ material, geoms }) => {
+    if (geoms.length === 1) {
+      result.add(new THREE.Mesh(geoms[0], material))
+      return
+    }
+    const merged = mergeGeometries(geoms, false)
+    // 释放中间克隆的几何体
+    geoms.forEach((g) => g.dispose())
+    if (merged) {
+      result.add(new THREE.Mesh(merged, material))
+    }
+  })
+
+  // 多材质 Mesh 保持原样加入结果
+  skipped.forEach((mesh) => {
+    const clone = mesh.clone()
+    result.add(clone)
+  })
+
+  return result
 }
 
 /** 发起或复用 GLTF 加载请求（Suspense 兼容） */
@@ -96,7 +167,7 @@ export function useModelLoader(
   url: string,
   options: UseModelLoaderOptions = {}
 ): UseModelLoaderResult {
-  const { draco = false } = options
+  const { draco = false, mergeMaterials = false } = options
 
   // 计算 Draco decoder 路径
   const dracoPath = useMemo(() => {
@@ -109,9 +180,11 @@ export function useModelLoader(
   const gltf = loadGLTF(url, dracoPath)
 
   // useMemo 缓存 scene clone，避免多组件共享同一 scene 实例
+  // 如果启用 mergeMaterials，则在 clone 后合并相同材质的 Mesh
   const clonedScene = useMemo(() => {
-    return gltf.scene.clone(true)
-  }, [gltf.scene])
+    const base = gltf.scene.clone(true)
+    return mergeMaterials ? mergeSceneByMaterial(base) : base
+  }, [gltf.scene, mergeMaterials])
 
   // 组件卸载时清理 clone 出来的场景资源
   // 注意：clone(true) 的纹理(Texture)与原始 gltf.scene 共享引用，

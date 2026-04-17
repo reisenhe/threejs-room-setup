@@ -12,10 +12,10 @@ function HomePage() {
         </p>
       </div>
 
-      <div className="flex gap-8 flex-wrap justify-center max-w-4xl">
-        <Link to="/clinic" className="no-underline">
-          <div className="bg-white rounded-2xl p-10 w-80 shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#1565c0]">
-            <div className="w-16 h-16 bg-[linear-gradient(135deg,#1565c0,#42a5f5)] rounded-xl flex items-center justify-center mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-4xl">
+        <Link to="/clinic" className="no-underline flex">
+          <div className="flex flex-col bg-white rounded-2xl p-10 w-full shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#1565c0]">
+            <div className="w-16 h-16 bg-[linear-gradient(135deg,#1565c0,#42a5f5)] rounded-xl flex items-center justify-center mb-6 shrink-0">
               <svg
                 width="32"
                 height="32"
@@ -33,15 +33,15 @@ function HomePage() {
             <h2 className="text-2xl font-semibold text-[#1565c0] mb-3">
               3D 诊所场景
             </h2>
-            <p className="text-base text-[#616161] leading-normal">
-              探索 3D 场景搭建技术：多房间布局、OrbitControls 交互控制、相机预设切换、轮廓高亮与报警动画等
+            <p className="text-base text-[#616161] leading-relaxed flex-1">
+              多房间 3D 场景搭建与布局，包含 OrbitControls 交互控制、相机预设切换、设备轮廓高亮与报警动画效果
             </p>
           </div>
         </Link>
 
-        <Link to="/export" className="no-underline">
-          <div className="bg-white rounded-2xl p-10 w-80 shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#1565c0]">
-            <div className="w-16 h-16 bg-[linear-gradient(135deg,#00897b,#26a69a)] rounded-xl flex items-center justify-center mb-6">
+        <Link to="/export" className="no-underline flex">
+          <div className="flex flex-col bg-white rounded-2xl p-10 w-full shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#00897b]">
+            <div className="w-16 h-16 bg-[linear-gradient(135deg,#00897b,#26a69a)] rounded-xl flex items-center justify-center mb-6 shrink-0">
               <svg
                 width="32"
                 height="32"
@@ -60,15 +60,15 @@ function HomePage() {
             <h2 className="text-2xl font-semibold text-[#00897b] mb-3">
               模型导出工具
             </h2>
-            <p className="text-base text-[#616161] leading-normal">
-              演示 GLTF 导出工作流：场景模型注册、3D 缩略图预览、一键导出 GLTF / GLB 文件
+            <p className="text-base text-[#616161] leading-relaxed flex-1">
+              GLTF 导出工作流演示：场景模型注册管理、实时3D 缩略图预览，支持 GLTF／GLB 格式一键导出
             </p>
           </div>
         </Link>
 
-        <Link to="/car-model" className="no-underline">
-          <div className="bg-white rounded-2xl p-10 w-80 shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#e65100]">
-            <div className="w-16 h-16 bg-[linear-gradient(135deg,#e65100,#ff9800)] rounded-xl flex items-center justify-center mb-6">
+        <Link to="/car-model" className="no-underline flex">
+          <div className="flex flex-col bg-white rounded-2xl p-10 w-full shadow-[0_8px_32px_rgba(21,101,192,0.15)] transition-all duration-300 cursor-pointer border-2 border-transparent hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(21,101,192,0.25)] hover:border-[#e65100]">
+            <div className="w-16 h-16 bg-[linear-gradient(135deg,#e65100,#ff9800)] rounded-xl flex items-center justify-center mb-6 shrink-0">
               <svg
                 width="32"
                 height="32"
@@ -89,8 +89,8 @@ function HomePage() {
             <h2 className="text-2xl font-semibold text-[#e65100] mb-3">
               车模展示
             </h2>
-            <p className="text-base text-[#616161] leading-normal">
-              高精度3D车模展示与性能对比，支持标准/优化双模式渲染，动画播放控制
+            <p className="text-base text-[#616161] leading-relaxed flex-1">
+              BMW M4 高精度 GLTF 模型加载，支持标准／优化双模式渲染对比、动画播放控制与相同材质节点合并优化
             </p>
           </div>
         </Link>

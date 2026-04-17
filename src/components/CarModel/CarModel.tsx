@@ -22,6 +22,8 @@ export interface CarModelProps {
   animSpeed: number
   /** 动画是否循环 */
   animLoop: boolean
+  /** 是否合并相同材质节点（合并后动画被停止） */
+  mergeMaterials?: boolean
   /** 加载完成回调 */
   onLoaded?: () => void
   /** 动画控制器就绪回调（传递 player 给父组件） */
@@ -33,6 +35,7 @@ export default function CarModel({
   animPlaying,
   animSpeed,
   animLoop,
+  mergeMaterials = false,
   onLoaded,
   onAnimReady,
 }: CarModelProps) {
@@ -41,6 +44,7 @@ export default function CarModel({
   // 加载 GLTF 模型（启用 Draco 解码）— Suspense 模式，渲染即加载完成
   const { scene, animations } = useModelLoader(MODEL_PATH, {
     draco: true,
+    mergeMaterials,
   })
 
   // 动画控制
@@ -50,6 +54,13 @@ export default function CarModel({
   useEffect(() => {
     onLoaded?.()
   }, [onLoaded])
+
+  // 合并材质开启时，停止当前动画（合并后场景节点名丢失，动画绑定失效）
+  useEffect(() => {
+    if (mergeMaterials) {
+      animPlayer.stop()
+    }
+  }, [mergeMaterials]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 动画控制器就绪后传递给父组件
   useEffect(() => {
