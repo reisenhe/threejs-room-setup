@@ -6,47 +6,57 @@
 [![Vite](https://img.shields.io/badge/Vite-8.0.8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-> 基于 React Three Fiber 的 Web 3D 技术场景集合，涵盖空间建模、GLTF 模型加载、实时性能监控与模型导出等典型开发场景，适合作为学习或二次开发的参考起点。
+> 基于 **React Three Fiber + Three.js** 的 Web3D 工程实践场景集，覆盖空间建模、GLTF/Draco 模型加载、PBR 材质渲染、Draw Call 合并优化、实时性能监控与 GLTF 导出等核心开发场景，可作为 Web3D 项目工程化的参考起点或技术评审用例。
+
+---
+
+## 🎬 效果预览
+
+### 多房间诊所场景 — 交互 · 高亮 · 相机预设
+
+![多房间诊所场景](./doc/room1.gif)
+
+> 点击房间聚焦 + 其余房间淡出 · 悬停 Outline 描边高亮 · 相机预设 Lerp 平滑切换
+
+### GLTF 车模展示 — 加载 · 性能监控 · 动画控制
+
+![GLTF 车模展示](./doc/car-1.gif)
+
+> Draco 压缩解码加载 · 双模式性能对比（标准 / 优化）· FPS / Draw Call / 三角面实时监控
 
 ---
 
 ## ✨ 功能特性
 
-### 里程碑 1 — 3D 诊所场景基础
+### M1 — 3D 空间场景基础
 
-- **3D 诊所空间** — 12×8m 矩形房间，含地板网格、四面墙体、半透明天花板
-- **L 形接待台** — 可配置尺寸的接待区家具
-- **候诊座椅** — 支持配置排数的等候区座位
-- **入口门框** — 诊所入口结构
-- **交互控制** — OrbitControls 支持旋转、缩放、平移
-- **专业光照** — 环境光 + 定向光 + 半球光，含阴影贴图渲染
+- **程序化建模** — 基于 `BufferGeometry` 构建 12×8m 室内空间（地板/墙体/半透明天花板）
+- **组合式家具** — L 形接待台、可配置排数候诊椅、入口门框，支持参数化复用
+- **OrbitControls 交互** — 旋转、缩放、平移全支持
+- **三光源系统** — 环境光 + 定向光（含 PCF 阴影贴图）+ 半球光
 
-### 里程碑 2 — 多房间交互与场景增强
+### M2 — 多实例交互与后期处理
 
-- **4 房间布局** — 可独立操作的多诊室场景
-- **房间淡出效果** — 选中房间时其他房间透明淡出
-- **天花板切换** — 可按需隐藏/显示天花板
-- **红色报警闪烁** — 单房间触发视觉报警动画
-- **悬停高亮轮廓** — 基于 `@react-three/postprocessing` 的 Outline 描边效果
-- **相机预设切换** — 内设一楼视角、外部主视角、慢速旋转轨道等预设，支持平滑 Lerp 过渡
-- **Zustand 状态管理** — 集中管理房间选中、报警、摄像机状态
-- **ClinicPage 控制面板** — 右侧 UI 面板提供房间快选、相机切换与全局重置
+- **4 房间实例化布局** — 相同组件多实例独立状态管理
+- **透明度淡出动画** — `useFrame` + `MathUtils.lerp` 实现选中/非选中平滑过渡
+- **发光报警效果** — 基于 `emissive` 通道的正弦波闪烁动画
+- **Outline 描边高亮** — `@react-three/postprocessing` EffectComposer 后期处理管线
+- **相机预设系统** — 多视角预设 + Lerp 平滑切换，Zustand 全局状态驱动
+- **细粒度状态订阅** — Zustand selector 按需订阅，避免无关组件重渲染
 
-### 里程碑 3 — GLTF 模型加载与性能优化
+### M3 — GLTF 模型加载与渲染优化
 
-- **GLTF 车模展示** — 加载真实 BMW M4 / BMW M4 Widebody 模型（含 Draco 压缩支持）
-- **双模式性能对比** — 标准模式 vs 优化模式，动态 LOD 衰减与材质降级
-- **实时性能监控仪表盘** — FPS、内存（MB）、DrawCall 数量、三角面数量实时展示，含图表历史趋势
-- **加载进度条** — 模型加载时展示百分比进度
-- **动画播放控制** — 播放 / 暂停 / 切换动画片段
-- **可复用 Hooks** — `useModelLoader`、`usePerformanceMode`、`useAnimationPlayer`
+- **GLTF/Draco 加载 Hook** — 封装 `GLTFLoader` + `DRACOLoader`（本地解码器，无 CDN 依赖），React Suspense 模式
+- **同材质 Mesh 合并** — 基于材质 UUID + Attribute 指纹分桶，`mergeGeometries` 批量合并，降低 Draw Call
+- **双模式性能降级** — Standard（全质量）/ Optimized（剥离法线/AO/位移贴图，降低 DPR，关闭阴影），WeakMap 缓存原始材质支持无损可逆切换
+- **实时性能仪表盘** — FPS、性能因子、Draw Call、三角面数实时展示，状态分级着色（良好/一般/较差）
+- **动画播放控制** — `AnimationMixer` 封装 Hook，支持播放/暂停/速度/循环独立控制
 
-### 导出页面 — 模型画廊与 GLTF 导出
+### 扩展 — 模型画廊与 GLTF 导出
 
-- **模型画廊列表** — 左侧缩略图列表，每张缩略图为独立旋转 3D 预览
-- **主预览画布** — 选中模型后在主区域展示完整可交互 3D 预览
-- **GLTF / GLB 导出** — 一键将当前场景导出为 GLTF 或 GLB 文件下载
-- **可选导出内容** — 网格、材质、动画、灯光等导出选项按需勾选
+- **多 Canvas 缩略图画廊** — 每个模型独立旋转预览，模型注册表统一管理
+- **GLTFExporter 集成** — 一键导出 GLTF（JSON）/ GLB（二进制），Blob 流式下载
+- **导出内容可选** — 网格、材质、动画、灯光按需勾选
 
 ---
 
